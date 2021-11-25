@@ -3,9 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Android/AndroidStudioProjects/projects/MusicPlayer/app/src/main/res/layout/activity_main.xml" value="0.25364583333333335" />
-        <entry key="..\:/Android/AndroidStudioProjects/projects/MusicPlayer/app/src/main/res/layout/navigation_song_list.xml" value="0.25364583333333335" />
-        <entry key="..\:/Android/AndroidStudioProjects/projects/MusicPlayer/app/src/main/res/layout/song_row_item.xml" value="0.15896739130434784" />
+        <entry key="..\:/Android/AndroidStudioProjects/projects/MusicPlayer/app/src/main/res/drawable/button_delete_background.xml" value="0.22719298245614036" />
+        <entry key="..\:/Android/AndroidStudioProjects/projects/MusicPlayer/app/src/main/res/layout/activity_main.xml" value="0.21359649122807017" />
+        <entry key="..\:/Android/AndroidStudioProjects/projects/MusicPlayer/app/src/main/res/layout/navigation_song_list.xml" value="0.21359649122807017" />
+        <entry key="..\:/Android/AndroidStudioProjects/projects/MusicPlayer/app/src/main/res/layout/song_row_item.xml" value="0.21359649122807017" />
       </map>
     </option>
   </component>

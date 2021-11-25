@@ -3,6 +3,7 @@ package com.example.musicplayer.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,30 +15,34 @@ import java.util.ArrayList;
 
 public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAdapter.ViewHolder> {
     private ArrayList<String> songsList;
-    private OnClickListener clickListener;
-    private OnLongClickListener longClickListener;
+    private OnClickItemListener clickItemListener;
+    private OnClickButtonListener clickButtonListener;
 
-    public interface OnClickListener {
+    public interface OnClickItemListener {
         void onClick(View view);
     }
 
-    public interface OnLongClickListener {
-        boolean onLongClick(View view);
+    public interface OnClickButtonListener {
+        void onClick(View view);
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        private final View songItem;
         private final TextView textView;
+        private final Button deleteBtn;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            songItem = itemView.findViewById(R.id.song_item);
             textView = itemView.findViewById(R.id.textView);
+            deleteBtn = itemView.findViewById(R.id.delete_btn);
         }
     }
 
-    public MyRecyclerViewAdapter(ArrayList<String> songsList, OnClickListener clickListener, OnLongClickListener longClickListener) {
+    public MyRecyclerViewAdapter(ArrayList<String> songsList, OnClickItemListener clickItemListener, OnClickButtonListener clickButtonListener) {
         this.songsList = songsList;
-        this.clickListener = clickListener;
-        this.longClickListener = longClickListener;
+        this.clickItemListener = clickItemListener;
+        this.clickButtonListener = clickButtonListener;
     }
 
     @NonNull
@@ -50,8 +55,8 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<MyRecyclerViewAd
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         String song = songsList.get(position);
         holder.textView.setText(song.split(".mp3")[0]);
-        holder.textView.setOnClickListener(view -> clickListener.onClick(view));
-        holder.textView.setOnLongClickListener(view -> longClickListener.onLongClick(view));
+        holder.songItem.setOnClickListener(view -> clickItemListener.onClick(view));
+        holder.deleteBtn.setOnClickListener(view -> clickButtonListener.onClick(view));
     }
 
     @Override

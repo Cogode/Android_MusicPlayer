@@ -13,12 +13,20 @@
         android:orientation="vertical"
         android:gravity="center">
 
-        <TextView
-            android:id="@+id/header_title"
-            android:layout_width="250dp"
-            android:layout_height="100dp"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
-            android:textSize="25sp" />
+            android:background="#eee">
+
+            <TextView
+                android:id="@+id/header_title"
+                android:layout_width="250dp"
+                android:layout_height="100dp"
+                android:gravity="center"
+                android:textSize="25sp" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -78,7 +86,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#ffd"
+                android:background="#666"
                 android:layout_gravity="bottom"
                 android:gravity="center"
                 android:paddingTop="30dp"
@@ -137,7 +145,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="right"
-        android:background="#ffc"
+        android:background="#000"
         app:headerLayout="@layout/navigation_song_list" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

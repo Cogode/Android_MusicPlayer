@@ -15,7 +15,6 @@ import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -250,12 +249,23 @@ public class MainActivity extends AppCompatActivity {
                 recyclerView.setLayoutManager(layoutManager);
                 adapter = new MyRecyclerViewAdapter(songsList, view -> {
                     drawerLayout.closeDrawers();
-                    String song = ((TextView) view).getText().toString() + ".mp3";
+                    String song = ((TextView) view.findViewById(R.id.textView)).getText().toString() + ".mp3";
                     play(song);
-                }, view -> true);
+                }, view -> {
+                    String song = ((TextView) ((View) view.getParent()).findViewById(R.id.textView)).getText().toString() + ".mp3";
+                    for(int i = 0; i < songsList.size(); i ++) {
+                        if(songsList.get(i).equals(song))
+                            songsList.remove(i);
+                    }
+                    adapter.notifyDataSetChanged();
+                });
                 recyclerView.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
                 recyclerView.scrollToPosition(0);
+                View addSong = findViewById(R.id.add_song);
+                addSong.setOnClickListener(view -> {
+                    
+                });
             }
 
             @Override
