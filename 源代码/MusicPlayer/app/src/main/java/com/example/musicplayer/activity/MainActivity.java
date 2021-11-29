@@ -41,13 +41,13 @@ public class MainActivity extends AppCompatActivity {
     private Button lastOneBtn;
     private Button nextOneBtn;
     private Button songsBtn;
+
     private int SONG_STATUS = 0;    // -1 表示暂停，0 表示未开始，1 表示正在播放
     private ArrayList<String> songsList = new ArrayList<>();
     private int currentIndex = 0;
     private RecyclerView recyclerView;
     private MyRecyclerViewAdapter adapter;
     private AssetManager assetManager;
-    private MediaPlayer player;
     private AssetFileDescriptor assetFd;
     private DrawerLayout drawerLayout;
     private TextView startTime;
@@ -59,6 +59,21 @@ public class MainActivity extends AppCompatActivity {
     private int SONG_PLAY_TYPE = 0;    // -1 表示循环，0 表示顺序，1 表示随机
     private CircleImageView imageView;
     private RotateAnimation animation;
+    private MediaPlayer player = new MediaPlayer();
+
+    /*
+    private MusicPlayerService.MusicPlayerBinder mBinder;
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            mBinder = (MusicPlayerService.MusicPlayerBinder) iBinder;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+
+        }
+    };*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         assetManager = getAssets();
         songsList = getSongsList();
-        player = new MediaPlayer();
-        player.setLooping(false);
         drawerLayout = findViewById(R.id.drawerLayout);
         startTime = findViewById(R.id.start_time);
         endTime = findViewById(R.id.end_time);
@@ -84,6 +97,13 @@ public class MainActivity extends AppCompatActivity {
         headTitle.setSingleLine();
         headTitle.setSelected(true);
         imageView = findViewById(R.id.imageView);
+
+        /*
+        Intent intent = new Intent(MainActivity.this, MusicPlayerService.class);
+        startService(intent);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);*/
+
+        player.setLooping(false);
 
         player.setOnPreparedListener(mediaPlayer -> {
             headTitle.setText(songsList.get(currentIndex).split(".mp3")[0]);
@@ -178,6 +198,12 @@ public class MainActivity extends AppCompatActivity {
                 assetFd = assetManager.openFd(songsList.get(currentIndex));
                 refreshCover();
                 timer.cancel();
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                    }
+                });
                 player.reset();
                 player.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
                 player.prepare();
