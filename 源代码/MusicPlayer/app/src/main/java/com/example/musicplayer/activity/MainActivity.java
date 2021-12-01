@@ -6,6 +6,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -14,6 +18,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -26,6 +31,7 @@ import android.widget.Toast;
 
 import com.example.musicplayer.R;
 import com.example.musicplayer.adapter.MyRecyclerViewAdapter;
+import com.example.musicplayer.service.MusicPlayerService;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -59,9 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private int SONG_PLAY_TYPE = 0;    // -1 表示循环，0 表示顺序，1 表示随机
     private CircleImageView imageView;
     private RotateAnimation animation;
-    private MediaPlayer player = new MediaPlayer();
 
-    /*
     private MusicPlayerService.MusicPlayerBinder mBinder;
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -73,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName componentName) {
 
         }
-    };*/
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,14 +102,13 @@ public class MainActivity extends AppCompatActivity {
         headTitle.setSelected(true);
         imageView = findViewById(R.id.imageView);
 
-        /*
         Intent intent = new Intent(MainActivity.this, MusicPlayerService.class);
         startService(intent);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);*/
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
-        player.setLooping(false);
+        mBinder.setLooping(false);
 
-        player.setOnPreparedListener(mediaPlayer -> {
+        mBinder.setOnPreparedListener(mediaPlayer -> {
             headTitle.setText(songsList.get(currentIndex).split(".mp3")[0]);
         });
 
@@ -124,12 +127,12 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 isChangingSeekBar = false;
                 if(SONG_STATUS != 1) {
-                    player.start();
+                    mBinder.start();
                     SONG_STATUS = 1;
                     statusBtn.setText("暂停");
                 }
-                player.seekTo(seekBar.getProgress());
-                int position = player.getCurrentPosition();
+                mBinder.seekTo(seekBar.getProgress());
+                int position = mBinder.getCurrentPosition();
                 startTime.setText(getProgressTime(position / 1000));
             }
         });
@@ -137,12 +140,12 @@ public class MainActivity extends AppCompatActivity {
         statusBtn = findViewById(R.id.status_btn);
         statusBtn.setOnClickListener(view -> {
             if(SONG_STATUS == 0 || SONG_STATUS == -1) {
-                player.start();
+                mBinder.start();
                 SONG_STATUS = 1;
                 statusBtn.setText("暂停");
             }
             else if(SONG_STATUS == 1) {
-                player.pause();
+                mBinder.pause();
                 SONG_STATUS = -1;
                 statusBtn.setText("播放");
             }
@@ -150,16 +153,16 @@ public class MainActivity extends AppCompatActivity {
 
         stopBtn = findViewById(R.id.stop_btn);
         stopBtn.setOnClickListener(view -> {
-            player.stop();
+            mBinder.stop();
             SONG_STATUS = 0;
             statusBtn.setText("播放");
             try {
                 assetFd = assetManager.openFd(songsList.get(currentIndex));
                 refreshCover();
                 timer.cancel();
-                player.reset();
-                player.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
-                player.prepare();
+                mBinder.reset();
+                mBinder.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
+                mBinder.prepare();
                 refreshSeekBarProcess();
             } catch(Exception e) {
                 Toast.makeText(MainActivity.this, "停止失败", Toast.LENGTH_SHORT).show();
@@ -169,16 +172,16 @@ public class MainActivity extends AppCompatActivity {
         lastOneBtn = findViewById(R.id.lastOne_btn);
         lastOneBtn.setOnClickListener(view -> {
             try {
-                player.stop();
+                mBinder.stop();
                 SONG_STATUS = 0;
                 currentIndex = getModulus(currentIndex - 1, songsList.size());
                 assetFd = assetManager.openFd(songsList.get(currentIndex));
                 refreshCover();
                 timer.cancel();
-                player.reset();
-                player.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
-                player.prepare();
-                player.start();
+                mBinder.reset();
+                mBinder.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
+                mBinder.prepare();
+                mBinder.start();
                 SONG_STATUS = 1;
                 statusBtn.setText("暂停");
                 refreshSeekBarProcess();
@@ -192,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
         nextOneBtn = findViewById(R.id.nextOne_btn);
         nextOneBtn.setOnClickListener(view -> {
             try {
-                player.stop();
+                mBinder.stop();
                 SONG_STATUS = 0;
                 currentIndex = getModulus(currentIndex + 1, songsList.size());
                 assetFd = assetManager.openFd(songsList.get(currentIndex));
@@ -204,10 +207,10 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 });
-                player.reset();
-                player.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
-                player.prepare();
-                player.start();
+                mBinder.reset();
+                mBinder.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
+                mBinder.prepare();
+                mBinder.start();
                 SONG_STATUS = 1;
                 statusBtn.setText("暂停");
                 refreshSeekBarProcess();
@@ -224,12 +227,12 @@ public class MainActivity extends AppCompatActivity {
         typeBtn = findViewById(R.id.type_btn);
         typeBtn.setOnClickListener(view -> {
             if(SONG_PLAY_TYPE == -1) {
-                player.setLooping(false);
+                mBinder.setLooping(false);
                 SONG_PLAY_TYPE = 1;
                 typeBtn.setText("随机");
             }
             else if(SONG_PLAY_TYPE == 0) {
-                player.setLooping(true);
+                mBinder.setLooping(true);
                 SONG_PLAY_TYPE = -1;
                 typeBtn.setText("单曲");
             }
@@ -239,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        player.setOnCompletionListener(mediaPlayer -> {
+        mBinder.setOnCompletionListener(mediaPlayer -> {
             if(SONG_PLAY_TYPE == 0)
                 currentIndex = getModulus(currentIndex + 1, songsList.size());
             else if(SONG_PLAY_TYPE == 1)
@@ -248,10 +251,10 @@ public class MainActivity extends AppCompatActivity {
                 assetFd = assetManager.openFd(songsList.get(currentIndex));
                 refreshCover();
                 timer.cancel();
-                player.reset();
-                player.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
-                player.prepare();
-                player.start();
+                mBinder.reset();
+                mBinder.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
+                mBinder.prepare();
+                mBinder.start();
                 SONG_STATUS = 1;
                 statusBtn.setText("暂停");
                 refreshSeekBarProcess();
@@ -309,9 +312,9 @@ public class MainActivity extends AppCompatActivity {
             currentIndex = random(songsList.size());
             assetFd = assetManager.openFd(songsList.get(currentIndex));
             refreshCover();
-            player.reset();
-            player.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
-            player.prepare();
+            mBinder.reset();
+            mBinder.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
+            mBinder.prepare();
             refreshSeekBarProcess();
         } catch(Exception e) {
             Toast.makeText(MainActivity.this, "歌曲初始化失败", Toast.LENGTH_SHORT).show();
@@ -344,10 +347,10 @@ public class MainActivity extends AppCompatActivity {
             assetFd = assetManager.openFd(song);
             refreshCover();
             timer.cancel();
-            player.reset();
-            player.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
-            player.prepare();
-            player.start();
+            mBinder.reset();
+            mBinder.setDataSource(assetFd.getFileDescriptor(), assetFd.getStartOffset(), assetFd.getLength());
+            mBinder.prepare();
+            mBinder.start();
             SONG_STATUS = 1;
             statusBtn.setText("暂停");
             refreshSeekBarProcess();
@@ -367,7 +370,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initAnimation() {
-        animation = new RotateAnimation(0f, 360f, RotateAnimation.RELATIVE_TO_SELF, 0.5f, RotateAnimation.RELATIVE_TO_SELF, 0.5f);
+        animation = new RotateAnimation(0f, 360f, RotateAnimation.RELATIVE_TO_SELF,
+                0.5f, RotateAnimation.RELATIVE_TO_SELF, 0.5f);
         animation.setDuration(10000);
         animation.setRepeatCount(RotateAnimation.INFINITE);
         animation.setRepeatMode(RotateAnimation.RESTART);
@@ -377,8 +381,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshProcessTime() {
-        int duration = player.getDuration() / 1000;
-        int position = player.getCurrentPosition();
+        int duration = mBinder.getDuration() / 1000;
+        int position = mBinder.getCurrentPosition();
         startTime.setText(getProgressTime(position / 1000));
         endTime.setText(getProgressTime(duration));
     }
@@ -390,8 +394,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if(! isChangingSeekBar) {
-                    seekBar.setMax(player.getDuration());
-                    seekBar.setProgress(player.getCurrentPosition());
+                    seekBar.setMax(mBinder.getDuration());
+                    seekBar.setProgress(mBinder.getCurrentPosition());
                 }
             }
         },0,50);
@@ -435,6 +439,7 @@ public class MainActivity extends AppCompatActivity {
         return new Random().nextInt(max);
     }
 
+    // m 对 n 取模
     public int getModulus(int m, int n) {
         if(n > 0) {
             while(m < 0)
@@ -450,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(player != null)
-            player.release();
+        if(mBinder != null)
+            mBinder.release();
     }
 }
