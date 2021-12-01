@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
     private Button lastOneBtn;
     private Button nextOneBtn;
     private Button songsBtn;
-
     private int SONG_STATUS = 0;    // -1 表示暂停，0 表示未开始，1 表示正在播放
     private ArrayList<String> songsList = new ArrayList<>();
     private int currentIndex = 0;
